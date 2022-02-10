@@ -14,11 +14,11 @@ image_width, num_channels)`, with accompanying labels (sorted in the same order)
 `num_samples`.
 """
 struct LabelledImageDataset{T<:Real,U<:Integer} <: LabelledDataset
-    images::Array{T,2}
+    images::Array{T,4}
     labels::Array{U,1}
 
     function LabelledImageDataset{T,U}(
-        images::Array{T,2},
+        images::Array{T,4},
         labels::Array{U,1},
     )::LabelledImageDataset where {T<:Real,U<:Integer}
         (num_image_samples, image_height, image_width, num_channels) = size(images)
@@ -29,7 +29,7 @@ struct LabelledImageDataset{T<:Real,U<:Integer} <: LabelledDataset
 end
 
 function LabelledImageDataset(
-    images::Array{T,2},
+    images::Array{T,4},
     labels::Array{U,1},
 )::LabelledImageDataset where {T<:Real,U<:Integer}
     LabelledImageDataset{T,U}(images, labels)
