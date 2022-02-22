@@ -3,20 +3,20 @@ export Binarize
 """
 $(TYPEDEF)
 
-Represents a Normalization operation.
+Represents a Binarized Layer.
 """
 struct Binarize <: Layer
 end
 
-function Base.show(io::IO, p::Normalize)
+function Base.show(io::IO, p::Binarize)
     print(io, "Binarize()")
 end
 
-function apply(p::Normalize, x::Array{<:JuMPReal})
+function apply(p::Binarize, x::Array{<:JuMPReal})
     output = x
     output[output.<0].= -1
     output[output.>=0].= 1
     return output
 end
 
-(p::Normalize)(x::Array{<:JuMPReal}) = apply(p, x)
+(p::Binarize)(x::Array{<:JuMPReal}) = apply(p, x)
