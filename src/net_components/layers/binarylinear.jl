@@ -22,8 +22,8 @@ struct BinaryLinear{T<:Real,U<:Real} <: Layer
             matrix_height == bias_height,
             "Number of output channels in matrix, $matrix_height, does not match number of output channels in bias, $bias_height."
         )
-        matrix[matrix .< 0] .= 0
-        matrix[matrix .> 0] .= 1
+        matrix[matrix .>= 0] .= 1
+        matrix[matrix .< 0] .= -1
         return new(matrix, bias)
     end
 

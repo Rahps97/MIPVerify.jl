@@ -14,8 +14,8 @@ end
 
 function apply(p::Binarize, x::Array{<:JuMPReal})
     output = x
-    output[output.<0].= 0
-    output[output.>0].= 1
+    output[output.>=0].= 1
+    output[output.<0].= -1
     return output
 end
 
