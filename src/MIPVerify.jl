@@ -283,10 +283,10 @@ end
 function frac_correct_boolean(nn, image, label)
     num_correct = 0.0;
     num_samples = 277;
-    for sample_index in 1:num_samples
+    @showprogress 1 "Computing fraction correct..." for sample_index in 1:num_samples
         input = image[sample_index,:];
         actual_label = label[sample_index,:][1];
-        predicted_label = input |> n1 |> ToBoolean;
+        predicted_label = input |> nn |> ToBoolean;
         if actual_label == predicted_label
             num_correct += 1
         end
