@@ -284,8 +284,8 @@ function frac_correct_boolean(nn, image, label)
     num_correct = 0.0;
     num_samples = 277;
     for sample_index in 1:num_samples
-        input = test_image[sample_index,:];
-        actual_label = test_label[sample_index,:][1];
+        input = image[sample_index,:];
+        actual_label = label[sample_index,:][1];
         predicted_label = input |> n1 |> ToBoolean;
         if actual_label == predicted_label
             num_correct += 1
