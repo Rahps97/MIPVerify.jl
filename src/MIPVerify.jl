@@ -279,6 +279,24 @@ function frac_correct(nn::NeuralNet, dataset::LabelledDataset, num_samples::Inte
 end
 
 
+###### For Binary Neural Network #######
+function frac_correct_boolean(nn, image, label)
+    num_correct = 0.0;
+    num_samples = 277;
+    for sample_index in 1:num_samples
+        input = test_image[sample_index,:];
+        actual_label = test_label[sample_index,:][1];
+        predicted_label = input |> n1 |> ToBoolean;
+        if actual_label == predicted_label
+            num_correct += 1
+        end
+        # println(predicted_label)
+    end
+    return num_correct / num_samples
+end
+########################################
+
+
 function get_norm(norm_order::Real, v::Array{<:Real})
     if norm_order == 1
         return sum(abs.(v))
