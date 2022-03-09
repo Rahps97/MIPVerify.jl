@@ -28,6 +28,13 @@ function get_max_index(x::Array{<:Real,1})::Integer
     return findmax(x)[2]
 end
 
+function ToBoolean(x)
+    if x[1] == -1
+        x[1] = 0
+    end
+    return x[1]
+end
+
 function get_default_tightening_options(optimizer)::Dict
     optimizer_type_name = string(typeof(optimizer()))
     if optimizer_type_name == "Gurobi.Optimizer"
@@ -159,6 +166,82 @@ function find_adversarial_example(
     d[:TotalTime] = total_time
     return d
 end
+
+
+#### For Bineary Neural Network ####
+
+function find_adversarial_example_for_boolean(
+    nn::NeuralNet,
+    input::Array{<:Real},
+    target_selection::Union{Integer,Array{<:Integer,1}},
+    optimizer,
+    main_solve_options::Dict;
+    invert_target_selection::Bool = false,
+    pp::PerturbationFamily = UnrestrictedPerturbationFamily(),
+    norm_order::Real = 1,
+    adversarial_example_objective::AdversarialExampleObjective = closest,
+    tightening_algorithm::TighteningAlgorithm = DEFAULT_TIGHTENING_ALGORITHM,
+    tightening_options::Dict = get_default_tightening_options(optimizer),
+    solve_if_predicted_in_targeted = true,
+)::Dict
+
+    total_time = @elapsed begin
+        d = Dict()
+
+        # Calculate predicted index
+        predicted_output = input |> nn
+        num_possible_indexes = 2
+        predicted_index = predicted_output |> ToBoolean
+
+        d[:PredictedIndex] = predicted_index
+
+        # Set target indexes
+        d[:TargetIndexes] = [0,1]
+        notice(
+            MIPVerify.LOGGER,
+            "Attempting to find adversarial example. Neural net predicted label is $(predicted_index), target labels are $(d[:TargetIndexes])",
+        )
+
+        # Only call optimizer if predicted index is not found among target indexes.
+        if !(d[:PredictedIndex] in d[:TargetIndexes]) || solve_if_predicted_in_targeted
+            merge!(d, get_model(nn, input, pp, optimizer, tightening_options, tightening_algorithm))
+            m = d[:Model]
+
+            if adversarial_example_objective == closest
+                set_max_indexes(m, d[:Output], d[:TargetIndexes])
+
+                # Set perturbation objective
+                # NOTE (vtjeng): It is important to set the objective immediately before we carry
+                # out the solve. Functions like `set_max_indexes` can modify the objective.
+                @objective(m, Min, get_norm(norm_order, d[:Perturbation]))
+            elseif adversarial_example_objective == worst
+                (maximum_target_var, nontarget_vars) =
+                    get_vars_for_max_index(d[:Output], d[:TargetIndexes])
+                maximum_nontarget_var = maximum_ge(nontarget_vars)
+                # Introduce an additional variable since Gurobi ignores constant terms in objective, 
+                # but we explicitly need these if we want to stop early based on the value of the 
+                # objective (not simply whether or not it is maximized).
+                # See discussion in https://github.com/jump-dev/Gurobi.jl/issues/111 for more 
+                # details.
+                v_obj = @variable(m)
+                @constraint(m, v_obj == maximum_target_var - maximum_nontarget_var)
+                @objective(m, Max, v_obj)
+            else
+                error("Unknown adversarial_example_objective $adversarial_example_objective")
+            end
+            set_optimizer(m, optimizer)
+            set_optimizer_attributes(m, main_solve_options...)
+            optimize!(m)
+            d[:SolveStatus] = JuMP.termination_status(m)
+            d[:SolveTime] = JuMP.solve_time(m)
+        end
+    end
+
+    d[:TotalTime] = total_time
+    return d
+end
+
+#############################################
 
 function get_label(y::Array{<:Real,1}, test_index::Integer)::Int
     return y[test_index]
