@@ -32,7 +32,7 @@ function ToBoolean(x)
     if x[1] == -1
         x[1] = 0
     end
-    return x[1]
+    return x[1] + 1
 end
 
 function get_default_tightening_options(optimizer)::Dict
