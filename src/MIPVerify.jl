@@ -193,7 +193,7 @@ function find_adversarial_example_for_boolean(
         num_possible_indexes = 2
         predicted_index = predicted_output |> ToBoolean
 
-        d[:PredictedIndex] = predicted_index
+        d[:PredictedIndex] = convert(Integer, predicted_index)
 
         # Set target indexes
         d[:TargetIndexes] = [0,1]
