@@ -193,10 +193,14 @@ function find_adversarial_example_for_boolean(
         num_possible_indexes = 2
         predicted_index = predicted_output |> ToBoolean
 
-        d[:PredictedIndex] = convert(Integer, predicted_index)
+        d[:PredictedIndex] = convert(Integer, predicted_index) + 1
 
         # Set target indexes
-        d[:TargetIndexes] = [0,1]
+        d[:TargetIndexes] = get_target_indexes(
+            target_selection,
+            num_possible_indexes,
+            invert_target_selection = invert_target_selection,
+        )
         notice(
             MIPVerify.LOGGER,
             "Attempting to find adversarial example. Neural net predicted label is $(predicted_index), target labels are $(d[:TargetIndexes])",
