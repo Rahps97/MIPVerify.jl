@@ -32,7 +32,7 @@ function ToBoolean(x)
     if x[1] == -1
         x[1] = 0
     end
-    return x[1] + 1
+    return x[1] 
 end
 
 function get_default_tightening_options(optimizer)::Dict
@@ -193,7 +193,7 @@ function find_adversarial_example_for_boolean(
         num_possible_indexes = 2
         predicted_index = predicted_output |> ToBoolean
 
-        d[:PredictedIndex] = convert(Integer, predicted_index) + 1
+        d[:PredictedIndex] = convert(Integer, predicted_index) 
 
         # Set target indexes
         d[:TargetIndexes] = get_target_indexes(
