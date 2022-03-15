@@ -171,7 +171,7 @@ function relu(x::AbstractArray{T}) where {T<:Real}
     return relu.(x)
 end
 
-function binarize(p::Binarize, x::Array{<:JuMPReal})
+function binarize(x::Array{<:JuMPReal})
     output = x
     output[output.>=0].= 1
     output[output.<0].= -1
