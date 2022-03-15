@@ -171,6 +171,13 @@ function relu(x::AbstractArray{T}) where {T<:Real}
     return relu.(x)
 end
 
+function binarize(p::Binarize, x::Array{<:JuMPReal})
+    output = x
+    output[output.>=0].= 1
+    output[output.<0].= -1
+    return output
+end
+
 function relu(x::T, l::Real, u::Real)::JuMP.AffExpr where {T<:JuMPLinearType}
     if u < l
         # TODO (vtjeng): This check is in place in case of numerical error in the calculation of bounds.
