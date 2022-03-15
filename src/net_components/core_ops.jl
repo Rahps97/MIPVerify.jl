@@ -171,11 +171,17 @@ function relu(x::AbstractArray{T}) where {T<:Real}
     return relu.(x)
 end
 
-function binarize(x::Array{<:JuMPReal})
-    output = x
-    output[output.>=0].= 1
-    output[output.<0].= -1
+function binarize(x::T)::T where {T<:Real}
+    if x >= 0
+        output = 1
+    else
+        output = -1
+    end
     return output
+end
+
+function binarize(x::AbstractArray{T}) where {T<:Real}
+    return binarize.(x)
 end
 
 function relu(x::T, l::Real, u::Real)::JuMP.AffExpr where {T<:JuMPLinearType}
