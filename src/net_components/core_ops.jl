@@ -217,7 +217,7 @@ function binarize(x::T, l::Real, u::Real)::JuMP.AffExpr where {T<:JuMPLinearType
         @constraint(model, x_bin = 1-2*a)
 
         # Manually set the bounds for x_rect so they can be used by downstream operations.
-        set_lower_bound(x_bin, 0)
+        set_lower_bound(x_bin, l)
         set_upper_bound(x_bin, u)
         return x_bin
     end
