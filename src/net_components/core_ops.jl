@@ -215,10 +215,10 @@ function binarize(x::T, l::Real, u::Real)::JuMP.AffExpr where {T<:JuMPLinearType
 
         # refined big-M formulation that takes advantage of the knowledge
         # that lower and upper bounds  are different.
-        @constraint(model, x_rect = sign())
-        @constraint(model, x_rect >= x)
-        @constraint(model, x_rect <= u * a)
-        @constraint(model, x_rect >= 0)
+        @constraint(model, x_rect = sign(x))
+        # @constraint(model, x_rect >= x)
+        # @constraint(model, x_rect <= u * a)
+        # @constraint(model, x_rect >= 0)
 
         # Manually set the bounds for x_rect so they can be used by downstream operations.
         set_lower_bound(x_rect, 0)
