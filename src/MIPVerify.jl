@@ -176,7 +176,6 @@ function find_adversarial_example_for_boolean(
     target_selection::Union{Integer,Array{<:Integer,1}},
     optimizer,
     main_solve_options::Dict;
-    invert_target_selection::Bool = false,
     pp::PerturbationFamily = UnrestrictedPerturbationFamily(),
     norm_order::Real = 1,
     adversarial_example_objective::AdversarialExampleObjective = closest,
@@ -196,11 +195,7 @@ function find_adversarial_example_for_boolean(
         d[:PredictedIndex] = convert(Integer, predicted_index) 
 
         # Set target indexes
-        d[:TargetIndexes] = get_target_indexes(
-            target_selection,
-            num_possible_indexes,
-            invert_target_selection = invert_target_selection,
-        )
+        d[:TargetIndexes] = [target_selection]
         notice(
             MIPVerify.LOGGER,
             "Attempting to find adversarial example. Neural net predicted label is $(predicted_index), target labels are $(d[:TargetIndexes])",
