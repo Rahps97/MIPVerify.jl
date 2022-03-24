@@ -184,6 +184,62 @@ function binarize(x::AbstractArray{T}) where {T<:Real}
     return binarize.(x)
 end
 
+
+function binarize(x::T, l::Real, u::Real)::JuMP.AffExpr where {T<:JuMPLinearType}
+    if u < l
+        Memento.warn(
+            MIPVerify.LOGGER,
+            "Inconsistent upper and lower bounds: u-l = $(u - l) is negative. Attempting to use interval arithmetic bounds instead ...",
+        )
+        u = upper_bound(x)
+        l = lower_bound(x)
+    end
+
+    if u <= 0
+        # rectified value is always 0
+        return one(T) * -1
+    elseif u == l
+        return one(T) 
+    elseif u < l
+        error(
+            MIPVerify.LOGGER,
+            "Inconsistent upper and lower bounds even after using only interval arithmetic: u-l = $(u - l) is negative",
+        )
+    elseif l >= 0
+        return one(T)
+    else
+        # since we know that u!=l, x is not constant, and thus x must have an associated model
+        model = owner_model(x)
+        x_rect = @variable(model)
+        # a = @variable(model, binary = true)
+
+        # refined big-M formulation that takes advantage of the knowledge
+        # that lower and upper bounds  are different.
+        @constraint(model, x_rect = sign())
+        @constraint(model, x_rect >= x)
+        @constraint(model, x_rect <= u * a)
+        @constraint(model, x_rect >= 0)
+
+        # Manually set the bounds for x_rect so they can be used by downstream operations.
+        set_lower_bound(x_rect, 0)
+        set_upper_bound(x_rect, u)
+        return x_rect
+    end
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function relu(x::T, l::Real, u::Real)::JuMP.AffExpr where {T<:JuMPLinearType}
     if u < l
         # TODO (vtjeng): This check is in place in case of numerical error in the calculation of bounds.
@@ -272,6 +328,28 @@ function lazy_tight_lowerbound(
 )::Real
     (u <= cutoff) ? u : tight_lowerbound(x; nta = nta, cutoff = cutoff)
 end
+
+
+
+
+
+
+
+
+
+function binarize(x::JuMPLinearType)::JuMP.AffExpr
+    u = tight_upperbound(x, cutoff = 0)
+    l = lazy_tight_lowerbound(x, u, cutoff = 0)
+    binarize(x, l, u)
+end
+
+
+
+
+
+
+
+
 
 function relu(x::JuMPLinearType)::JuMP.AffExpr
     u = tight_upperbound(x, cutoff = 0)
