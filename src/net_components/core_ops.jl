@@ -205,20 +205,21 @@ function binarize(x::T, l::Real, u::Real)::JuMP.AffExpr where {T<:JuMPLinearType
     else
         # since we know that u!=l, x is not constant, and thus x must have an associated model
         model = owner_model(x)
-        x_rect = @variable(model)
-        # a = @variable(model, binary = true)
+        x_bin = @variable(model)
+        a = @variable(model, binary = true)
 
         # refined big-M formulation that takes advantage of the knowledge
         # that lower and upper bounds  are different.
-        @constraint(model, x_rect == sign(x))
-        # @constraint(model, x_rect >= x)
-        # @constraint(model, x_rect <= u * a)
-        # @constraint(model, x_rect >= 0)
+        @constraint(model, x_bin >= -1)
+        @constraint(model, x_bin <= 1)
+        @constraint(model, x >= l * a)
+        @constraint(model, x <= u * (1-a))
+        @constraint(model, x_bin = 1-2*a)
 
         # Manually set the bounds for x_rect so they can be used by downstream operations.
-        set_lower_bound(x_rect, 0)
-        set_upper_bound(x_rect, u)
-        return x_rect
+        set_lower_bound(x_bin, 0)
+        set_upper_bound(x_bin, u)
+        return x_bin
     end
 end
 
